@@ -1,0 +1,32 @@
+# Deployment Manifest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app-borauysal
+  namespace: default
+  labels:
+    app: "demo-app-borauysal"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app-borauysal
+  template:
+    metadata:
+      labels:
+        app: demo-app-borauysal
+    spec:
+      serviceAccountName: ${SERVICE_ACCOUNT_NAME}
+      containers:
+        - name: demo-app-borauysal
+          image: ${IMAGE_NAME}
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "20m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          env:
+            - name: BUCKET_NAME
+              value: demo-app-borauysal

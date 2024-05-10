@@ -1,0 +1,29 @@
+steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_IMAGE_REPO}/${_APP_NAME}:$SHORT_SHA",
+        ".",
+      ]
+
+  # Push the container image to Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_IMAGE_REPO}/${_APP_NAME}:$SHORT_SHA",
+      ]
+
+  # Deploy the container image to Google Kubernetes Engine Cluster
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        envsubst < ./${_K8S_FILE} | gke-deploy run -f - -o deployment -c ${_CLUSTER_NAME} -l ${_CLUSTER_LOCATION} -p ${PROJECT_ID}
+    env:
+      - "IMAGE_NAME=${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_IMAGE_REPO}/${_APP_NAME}:$SHORT_SHA"
+      - "SERVICE_ACCOUNT_NAME=${_SERVICE_ACCOUNT_NAME}"
